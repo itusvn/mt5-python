@@ -1,14 +1,21 @@
+import os
 from pathlib import Path
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Load environment variables
+env_path = Path('.') / '.env'
+load_dotenv(dotenv_path=env_path)
+
+# Build paths inside the project
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = 'django-insecure-^*j#t9ee5v%7ldh9^-cwxh^rdx_5x2=41=znsr)kbx7%_i1sko'
+
+# SECURITY WARNING: keep the secret key used in production secret!
+SECRET_KEY = os.getenv('DJANGO_SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 # Application definition
 
@@ -60,29 +67,71 @@ WSGI_APPLICATION = 'trading_system.wsgi.application'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
 DATABASES = {
-   'default': {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'your_postgres_db',
-        'USER': 'your_postgres_user',
-        'PASSWORD': 'your_postgres_password',
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'NAME': os.getenv('DB_NAME'),
+        'USER': os.getenv('DB_USER'),
+        'PASSWORD': os.getenv('DB_PASSWORD'),
+        'HOST': os.getenv('DB_HOST'),
+        'PORT': os.getenv('DB_PORT'),
     }
 }
 
 from pymongo import MongoClient
 
-MONGO_DB_NAME = 'your_mongodb_name'
-MONGO_CLIENT = MongoClient(
-    'mongodb://your_mongodb_user:your_mongodb_password@your_mongodb_host:27017/'
-)
+MONGO_DB_NAME = os.getenv('MONGO_DB_NAME')
+MONGO_CLIENT = MongoClient(os.getenv('MONGO_URI'))
 MONGO_DB = MONGO_CLIENT[MONGO_DB_NAME]
 
-# MT5 configs
+# MT5 Settings
 MT5_CONFIG = {
-    'login': 'xxx',
-    'password': 'xxx', 
-    'server': 'xxx'
+    'path': os.getenv('MT5_PATH'),
+    'login': int(os.getenv('MT5_LOGIN')),
+    'password': os.getenv('MT5_PASSWORD'),
+    'server': os.getenv('MT5_SERVER'),
+    'timeout': int(os.getenv('MT5_TIMEOUT', 60000)),
+}
+
+# Risk Management Settings
+RISK_SETTINGS = {
+    'MAX_DAILY_LOSS': float(os.getenv('MAX_DAILY_LOSS', -1000)),
+    'MAX_POSITION_SIZE': float(os.getenv('MAX_POSITION_SIZE', 1.0)),
+    'MAX_OPEN_POSITIONS': int(os.getenv('MAX_OPEN_POSITIONS', 5)),
+    'DEFAULT_RISK_PER_TRADE': float(os.getenv('DEFAULT_RISK_PER_TRADE', 0.02)),
+}
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'file': {
+            'level': os.getenv('LOG_LEVEL', 'INFO'),
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.getenv('LOG_FILE_PATH', 'logs/trading.log'),
+            'maxBytes': int(os.getenv('MAX_LOG_SIZE', 10485760)),
+            'backupCount': int(os.getenv('BACKUP_COUNT', 5)),
+            'formatter': 'verbose',
+        },
+        'console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'core': {
+            'handlers': ['file', 'console'],
+            'level': os.getenv('LOG_LEVEL', 'INFO'),
+            'propagate': True,
+        },
+    },
 }
 
 # Password validation
@@ -127,3 +176,8 @@ STATIC_URL = '/static/'
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Security Settings
+SECURE_SSL_REDIRECT = os.getenv('SECURE_SSL_REDIRECT', 'False') == 'True'
+SESSION_COOKIE_SECURE = os.getenv('SESSION_COOKIE_SECURE', 'False') == 'True'
+CSRF_COOKIE_SECURE = os.getenv('CSRF_COOKIE_SECURE', 'False') == 'True'

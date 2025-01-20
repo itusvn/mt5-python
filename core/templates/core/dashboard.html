@@ -1,0 +1,310 @@
+<!-- templates/core/dashboard.html -->
+{% extends 'core/base.html' %}
+
+{% block title %}Trading Dashboard{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- Account Overview -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Account Overview</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-6">
+                        <h6>Balance</h6>
+                        <h3 id="balance">${{ account_info.balance|floatformat:2 }}</h3>
+                    </div>
+                    <div class="col-6">
+                        <h6>Equity</h6>
+                        <h3 id="equity">${{ account_info.equity|floatformat:2 }}</h3>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <h6>Margin Level</h6>
+                        <h3 id="marginLevel">{{ account_info.margin_level|floatformat:2 }}%</h3>
+                    </div>
+                    <div class="col-6">
+                        <h6>Daily P/L</h6>
+                        <h3 id="dailyPL" class="{% if daily_pl >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            ${{ daily_pl|floatformat:2 }}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trading Statistics -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Today's Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Total Trades</h6>
+                            <h3>{{ total_trades }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Winning Trades</h6>
+                            <h3>{{ winning_trades }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Win Rate</h6>
+                            <h3>
+                                {% if total_trades > 0 %}
+                                    {{ winning_trades|divide:total_trades|multiply:100|floatformat:1 }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-card">
+                            <h6>Average Trade</h6>
+                            <h3>${{ daily_pl|divide:total_trades|default:0|floatformat:2 }}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Open Positions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Open Positions</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped" id="positionsTable">
+                        <thead>
+                            <tr>
+                                <th>Ticket</th>
+                                <th>Symbol</th>
+                                <th>Type</th>
+                                <th>Volume</th>
+                                <th>Open Price</th>
+                                <th>Current Price</th>
+                                <th>SL</th>
+                                <th>TP</th>
+                                <th>Profit</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for position in open_positions %}
+                                <tr>
+                                    <td>{{ position.ticket }}</td>
+                                    <td>{{ position.symbol.name }}</td>
+                                    <td>
+                                        <span class="badge {% if position.trade_type == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ position.trade_type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ position.volume }}</td>
+                                    <td>{{ position.open_price }}</td>
+                                    <td class="current-price" data-symbol="{{ position.symbol.name }}">
+                                        {{ position.current_price|default:"Loading..." }}
+                                    </td>
+                                    <td>{{ position.sl|default:"-" }}</td>
+                                    <td>{{ position.tp|default:"-" }}</td>
+                                    <td class="position-profit {% if position.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        ${{ position.profit|floatformat:2 }}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger close-position" 
+                                                data-ticket="{{ position.ticket }}">
+                                            Close
+                                        </button>
+                                        <button class="btn btn-sm btn-warning modify-position" 
+                                                data-ticket="{{ position.ticket }}"
+                                                data-sl="{{ position.sl }}"
+                                                data-tp="{{ position.tp }}">
+                                            Modify
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="10" class="text-center">No open positions</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modify Position Modal -->
+<div class="modal fade" id="modifyPositionModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Modify Position</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="modifyPositionForm">
+                    <input type="hidden" id="modifyTicket">
+                    <div class="mb-3">
+                        <label>Stop Loss</label>
+                        <input type="number" class="form-control" id="modifySL" step="0.00001">
+                    </div>
+                    <div class="mb-3">
+                        <label>Take Profit</label>
+                        <input type="number" class="form-control" id="modifyTP" step="0.00001">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveModification">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Update account info every 5 seconds
+    setInterval(updateAccountInfo, 5000);
+
+    function updateAccountInfo() {
+        fetch('{% url "core:update-account" %}')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('balance').textContent = `$${data.balance.toFixed(2)}`;
+                document.getElementById('equity').textContent = `$${data.equity.toFixed(2)}`;
+                document.getElementById('marginLevel').textContent = `${data.margin_level.toFixed(2)}%`;
+            });
+    }
+
+    // Update positions every second
+    setInterval(updatePositions, 1000);
+
+    function updatePositions() {
+        fetch('{% url "core:update-positions" %}')
+            .then(response => response.json())
+            .then(data => {
+                updatePositionsTable(data.positions);
+            });
+    }
+
+    function updatePositionsTable(positions) {
+        const tbody = document.querySelector('#positionsTable tbody');
+        if (positions.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center">No open positions</td></tr>';
+            return;
+        }
+
+        positions.forEach(position => {
+            const row = document.querySelector(`tr[data-ticket="${position.ticket}"]`);
+            if (row) {
+                // Update existing row
+                row.querySelector('.current-price').textContent = position.current_price.toFixed(5);
+                row.querySelector('.position-profit').textContent = `$${position.total_profit.toFixed(2)}`;
+                row.querySelector('.position-profit').className = 
+                    `position-profit ${position.total_profit >= 0 ? 'text-success' : 'text-danger'}`;
+            }
+        });
+    }
+
+    // Handle close position
+    document.querySelectorAll('.close-position').forEach(button => {
+        button.addEventListener('click', function() {
+            if (confirm('Are you sure you want to close this position?')) {
+                const ticket = this.dataset.ticket;
+                closePosition(ticket);
+            }
+        });
+    });
+
+    function closePosition(ticket) {
+        fetch(`/api/trades/${ticket}/close_position/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updatePositions();
+            } else {
+                alert('Failed to close position: ' + data.error);
+            }
+        });
+    }
+
+    // Handle modify position
+    const modifyModal = new bootstrap.Modal(document.getElementById('modifyPositionModal'));
+
+    document.querySelectorAll('.modify-position').forEach(button => {
+        button.addEventListener('click', function() {
+            document.getElementById('modifyTicket').value = this.dataset.ticket;
+            document.getElementById('modifySL').value = this.dataset.sl || '';
+            document.getElementById('modifyTP').value = this.dataset.tp || '';
+            modifyModal.show();
+        });
+    });
+
+    document.getElementById('saveModification').addEventListener('click', function() {
+        const ticket = document.getElementById('modifyTicket').value;
+        const sl = document.getElementById('modifySL').value;
+        const tp = document.getElementById('modifyTP').value;
+
+        fetch(`/api/trades/${ticket}/modify_position/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ sl, tp })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                modifyModal.hide();
+                updatePositions();
+            } else {
+                alert('Failed to modify position: ' + data.error);
+            }
+        });
+    });
+
+    // Helper function to get CSRF token
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+</script>
+{% endblock %}

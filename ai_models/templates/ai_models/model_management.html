@@ -1,0 +1,302 @@
+<!-- templates/models/model_management.html -->
+
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Model Training Section -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Train New Model</h5>
+        </div>
+        <div class="card-body">
+            <form id="modelTrainingForm">
+                <div class="row">
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Model Type</label>
+                            <select class="form-control" id="modelType">
+                                <option value="price_predictor">Price Predictor</option>
+                                <option value="trend_classifier">Trend Classifier</option>
+                                <option value="rl_agent">RL Agent</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Symbol</label>
+                            <select class="form-control" id="symbol">
+                                <option value="EURUSD">EUR/USD</option>
+                                <option value="GBPUSD">GBP/USD</option>
+                                <!-- Add more symbols -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Training Period</label>
+                            <input type="number" class="form-control" id="trainingDays" value="100">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">Train Model</button>
+                        </div>
+                    </div>
+                </div>
+            </form>
+            
+            <!-- Training Progress -->
+            <div id="trainingProgress" style="display: none;">
+                <div class="progress mt-3">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                </div>
+                <div class="mt-2 text-center" id="trainingStatus"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Models -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="card-title mb-0">Available Models</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Model</th>
+                            <th>Symbol</th>
+                            <th>Trained Date</th>
+                            <th>Performance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modelsList">
+                        {% for model in models %}
+                        <tr>
+                            <td>{{ model.name }}</td>
+                            <td>{{ model.symbol }}</td>
+                            <td>{{ model.trained_date }}</td>
+                            <td>
+                                <span class="badge {% if model.performance > 0.6 %}bg-success{% else %}bg-warning{% endif %}">
+                                    {{ model.performance|floatformat:2 }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge {% if model.active %}bg-success{% else %}bg-secondary{% endif %}">
+                                    {{ model.active|yesno:"Active,Inactive" }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-info" onclick="viewModelDetails('{{ model.id }}')">
+                                    Details
+                                </button>
+                                <button class="btn btn-sm btn-primary" onclick="toggleModelStatus('{{ model.id }}')">
+                                    {{ model.active|yesno:"Deactivate,Activate" }}
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="deleteModel('{{ model.id }}')">
+                                    Delete
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Model Details Modal -->
+<div class="modal fade" id="modelDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Model Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Model Performance Metrics -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <canvas id="performanceChart"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Metrics</h6>
+                        <div id="modelMetrics"></div>
+                    </div>
+                </div>
+                
+                <!-- Recent Predictions -->
+                <h6 class="mt-4">Recent Predictions</h6>
+                <div class="table-responsive">
+                    <table class="table table-sm" id="predictionsTable"></table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Model Training
+document.getElementById('modelTrainingForm').onsubmit = async function(e) {
+    e.preventDefault();
+    
+    const formData = {
+        model_type: document.getElementById('modelType').value,
+        symbol: document.getElementById('symbol').value,
+        training_days: document.getElementById('trainingDays').value
+    };
+    
+    // Show progress
+    const progress = document.getElementById('trainingProgress');
+    progress.style.display = 'block';
+    
+    try {
+        const response = await fetch('/api/models/train/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify(formData)
+        });
+        
+        const result = await response.json();
+        if (result.status === 'success') {
+            alert('Model trained successfully');
+            location.reload();
+        } else {
+            alert('Training failed: ' + result.error);
+        }
+    } catch (error) {
+        alert('Error training model');
+    } finally {
+        progress.style.display = 'none';
+    }
+};
+
+// View Model Details
+async function viewModelDetails(modelId) {
+    try {
+        const response = await fetch(`/api/models/${modelId}/details/`);
+        const data = await response.json();
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('modelDetailsModal'));
+        
+        // Update performance chart
+        updatePerformanceChart(data.performance);
+        
+        // Update metrics
+        updateModelMetrics(data.metrics);
+        
+        // Update predictions table
+        updatePredictionsTable(data.recent_predictions);
+        
+        modal.show();
+    } catch (error) {
+        alert('Error loading model details');
+    }
+}
+
+// Toggle Model Status
+async function toggleModelStatus(modelId) {
+    if (confirm('Are you sure you want to change this model\'s status?')) {
+        try {
+            const response = await fetch(`/api/models/${modelId}/toggle-status/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to update model status');
+            }
+        } catch (error) {
+            alert('Error updating model status');
+        }
+    }
+}
+
+// Delete Model
+async function deleteModel(modelId) {
+    if (confirm('Are you sure you want to delete this model?')) {
+        try {
+            const response = await fetch(`/api/models/${modelId}/`, {
+                method: 'DELETE',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken')
+                }
+            });
+            
+            if (response.ok) {
+                location.reload();
+            } else {
+                alert('Failed to delete model');
+            }
+        } catch (error) {
+            alert('Error deleting model');
+        }
+    }
+}
+
+// Helper Functions
+function updatePerformanceChart(data) {
+    const ctx = document.getElementById('performanceChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: data.dates,
+            datasets: [{
+                label: 'Model Performance',
+                data: data.values,
+                borderColor: 'rgb(75, 192, 192)',
+                tension: 0.1
+            }]
+        }
+    });
+}
+
+function updateModelMetrics(metrics) {
+    const container = document.getElementById('modelMetrics');
+    container.innerHTML = Object.entries(metrics)
+        .map(([key, value]) => `<div><strong>${key}:</strong> ${value}</div>`)
+        .join('');
+}
+
+function updatePredictionsTable(predictions) {
+    const table = document.getElementById('predictionsTable');
+    table.innerHTML = `
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Prediction</th>
+                <th>Actual</th>
+                <th>Accuracy</th>
+            </tr>
+        </thead>
+        <tbody>
+            ${predictions.map(p => `
+                <tr>
+                    <td>${new Date(p.date).toLocaleDateString()}</td>
+                    <td>${p.prediction}</td>
+                    <td>${p.actual || 'N/A'}</td>
+                    <td>${p.accuracy ? (p.accuracy * 100).toFixed(2) + '%' : 'N/A'}</td>
+                </tr>
+            `).join('')}
+        </tbody>
+    `;
+}
+</script>
+{% endblock %}
