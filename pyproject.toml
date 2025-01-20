@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "mt5-python"
+version = "0.1.0"
+description = ""
+authors = ["Thu Nguyen Xuan <thu.nguyen@pninformatics.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^5.1.5"
+metatrader5 = "^5.0.4803"
+pytest = "^8.3.4"
+pandas = "^2.2.3"
+jsonfield = "^3.1.0"
+djangorestframework = "^3.15.2"
+pymongo = "^4.10.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
