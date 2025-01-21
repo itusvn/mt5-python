@@ -1,0 +1,32 @@
+<!-- templates/dashboard/charts/price_chart.html -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+            <h5 class="card-title mb-0 me-3">{{ current_symbol }}</h5>
+            <select id="timeframeSelect" class="form-select form-select-sm" style="width: auto;">
+                <option value="M1">M1</option>
+                <option value="M5">M5</option>
+                <option value="M15">M15</option>
+                <option value="H1" selected>H1</option>
+                <option value="H4">H4</option>
+                <option value="D1">D1</option>
+            </select>
+        </div>
+        <div class="chart-controls">
+            <div class="btn-group">
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleIndicators()">
+                    <i class="fas fa-chart-line"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="toggleDrawing()">
+                    <i class="fas fa-pencil-alt"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="resetChart()">
+                    <i class="fas fa-undo"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div id="tradingChart" style="height: 500px;"></div>
+    </div>
+</div>

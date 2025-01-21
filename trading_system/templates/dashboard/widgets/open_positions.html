@@ -1,0 +1,60 @@
+<!-- templates/dashboard/widgets/open_positions.html -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="card-title mb-0">Open Positions</h5>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newOrderModal">
+            New Order
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Ticket</th>
+                        <th>Symbol</th>
+                        <th>Type</th>
+                        <th>Volume</th>
+                        <th>Open Price</th>
+                        <th>Current</th>
+                        <th>SL</th>
+                        <th>TP</th>
+                        <th>Profit</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="openPositionsBody">
+                    {% for position in open_positions %}
+                    <tr data-ticket="{{ position.ticket }}">
+                        <td>{{ position.ticket }}</td>
+                        <td>{{ position.symbol }}</td>
+                        <td>
+                            <span class="badge {% if position.type == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">
+                                {{ position.type }}
+                            </span>
+                        </td>
+                        <td>{{ position.volume }}</td>
+                        <td>{{ position.open_price }}</td>
+                        <td class="current-price">{{ position.current_price }}</td>
+                        <td>{{ position.sl|default:"-" }}</td>
+                        <td>{{ position.tp|default:"-" }}</td>
+                        <td class="profit {% if position.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                            ${{ position.profit|floatformat:2 }}
+                        </td>
+                        <td>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-danger" onclick="closePosition('{{ position.ticket }}')">
+                                    Close
+                                </button>
+                                <button class="btn btn-sm btn-warning" onclick="showModifyModal('{{ position.ticket }}')">
+                                    Modify
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

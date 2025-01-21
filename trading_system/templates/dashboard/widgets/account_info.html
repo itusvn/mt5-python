@@ -1,0 +1,70 @@
+<!-- templates/dashboard/widgets/account_info.html -->
+<div class="row">
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card account-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Balance</h6>
+                <h3 class="card-title mb-0" id="accountBalance">
+                    ${{ account_info.balance|floatformat:2 }}
+                </h3>
+                <div class="change-indicator">
+                    {% if account_info.balance_change > 0 %}
+                        <span class="text-success">
+                            <i class="fas fa-arrow-up"></i>
+                            {{ account_info.balance_change|floatformat:2 }}%
+                        </span>
+                    {% else %}
+                        <span class="text-danger">
+                            <i class="fas fa-arrow-down"></i>
+                            {{ account_info.balance_change|floatformat:2 }}%
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card account-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Equity</h6>
+                <h3 class="card-title mb-0" id="accountEquity">
+                    ${{ account_info.equity|floatformat:2 }}
+                </h3>
+                <div class="margin-level">
+                    Margin Level: {{ account_info.margin_level|floatformat:2 }}%
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card account-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Open P/L</h6>
+                <h3 class="card-title mb-0 {% if account_info.profit >= 0 %}text-success{% else %}text-danger{% endif %}" 
+                    id="openPL">
+                    ${{ account_info.profit|floatformat:2 }}
+                </h3>
+                <div class="trade-count">
+                    Open Positions: {{ account_info.open_positions_count }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 col-sm-6 mb-4">
+        <div class="card account-card">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-2 text-muted">Today's P/L</h6>
+                <h3 class="card-title mb-0 {% if account_info.daily_profit >= 0 %}text-success{% else %}text-danger{% endif %}" 
+                    id="dailyPL">
+                    ${{ account_info.daily_profit|floatformat:2 }}
+                </h3>
+                <div class="win-rate">
+                    Win Rate: {{ account_info.win_rate|floatformat:1 }}%
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,35 @@
+<!-- templates/dashboard/main.html -->
+{% extends 'base/base.html' %}
+
+{% block content %}
+<div class="dashboard">
+    <!-- Top Row - Account Overview -->
+    <div class="row mb-4">
+        {% include 'dashboard/widgets/account_info.html' %}
+    </div>
+
+    <!-- Second Row - Charts & Market Watch -->
+    <div class="row mb-4">
+        <!-- Price Chart -->
+        <div class="col-md-8">
+            {% include 'dashboard/charts/price_chart.html' %}
+        </div>
+        <!-- Market Watch -->
+        <div class="col-md-4">
+            {% include 'dashboard/widgets/market_watch.html' %}
+        </div>
+    </div>
+
+    <!-- Third Row - Open Positions & Performance -->
+    <div class="row">
+        <!-- Open Positions -->
+        <div class="col-md-8">
+            {% include 'dashboard/widgets/open_positions.html' %}
+        </div>
+        <!-- Performance Summary -->
+        <div class="col-md-4">
+            {% include 'dashboard/widgets/performance.html' %}
+        </div>
+    </div>
+</div>
+{% endblock %}

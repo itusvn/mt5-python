@@ -1,0 +1,97 @@
+/* static/css/dashboard.css */
+.trading-platform {
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+/* Account Cards */
+.account-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+}
+
+.account-card:hover {
+    transform: translateY(-2px);
+}
+
+.account-card .card-body {
+    padding: 1.5rem;
+}
+
+.account-card .card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+/* Market Watch */
+.market-watch-table {
+    font-size: 0.9rem;
+}
+
+.market-watch-table td {
+    padding: 0.5rem 1rem;
+    vertical-align: middle;
+}
+
+.symbol-row {
+    cursor: pointer;
+}
+
+.symbol-row:hover {
+    background-color: rgba(0,0,0,0.03);
+}
+
+/* Open Positions */
+.position-row td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.5em 0.8em;
+}
+
+/* Performance Widgets */
+.performance-metrics .metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #eee;
+}
+
+.performance-metrics .label {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.performance-metrics .value {
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+/* Trading Chart */
+#tradingChart {
+    border-radius: 0 0 10px 10px;
+}
+
+.chart-controls .btn-group {
+    margin-left: 1rem;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .account-card {
+        margin-bottom: 1rem;
+    }
+    
+    .chart-controls {
+        margin-top: 1rem;
+    }
+    
+    #tradingChart {
+        height: 400px;
+    }
+}

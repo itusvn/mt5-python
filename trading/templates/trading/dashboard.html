@@ -1,0 +1,192 @@
+<!-- templates/trading/dashboard.html -->
+{% extends 'trading/base.html' %}
+
+{% block trading_content %}
+<div class="dashboard">
+    <!-- Account Summary -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Balance</h5>
+                    <h3 id="accountBalance">${{ account_info.balance|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Equity</h5>
+                    <h3 id="accountEquity">${{ account_info.equity|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Open P/L</h5>
+                    <h3 id="openPL" class="{% if account_info.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        ${{ account_info.profit|floatformat:2 }}
+                    </h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Margin Level</h5>
+                    <h3 id="marginLevel">{{ account_info.margin_level|floatformat:2 }}%</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Active Models & Signals -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Active AI Models</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Model</th>
+                                    <th>Symbol</th>
+                                    <th>Accuracy</th>
+                                    <th>Signal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model in active_models %}
+                                <tr>
+                                    <td>{{ model.name }}</td>
+                                    <td>{{ model.symbol }}</td>
+                                    <td>{{ model.accuracy|floatformat:2 }}%</td>
+                                    <td>
+                                        <span class="badge {% if model.signal == 'BUY' %}bg-success{% elif model.signal == 'SELL' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ model.signal }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Strategy Signals</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Strategy</th>
+                                    <th>Symbol</th>
+                                    <th>Signal</th>
+                                    <th>Confidence</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for strategy in strategies %}
+                                <tr>
+                                    <td>{{ strategy.name }}</td>
+                                    <td>{{ strategy.symbol }}</td>
+                                    <td>
+                                        <span class="badge {% if strategy.signal == 'BUY' %}bg-success{% elif strategy.signal == 'SELL' %}bg-danger{% else %}bg-secondary{% endif %}">
+                                            {{ strategy.signal }}
+                                        </span>
+                                    </td>
+                                    <td>{{ strategy.confidence|floatformat:2 }}%</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Open Positions -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">Open Positions</h5>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#newOrderModal">
+                        New Order
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Ticket</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Volume</th>
+                                    <th>Open Price</th>
+                                    <th>Current Price</th>
+                                    <th>SL</th>
+                                    <th>TP</th>
+                                    <th>Profit</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="openPositionsTable">
+                                {% for position in open_positions %}
+                                <tr>
+                                    <td>{{ position.ticket }}</td>
+                                    <td>{{ position.symbol }}</td>
+                                    <td>
+                                        <span class="badge {% if position.type == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ position.type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ position.volume }}</td>
+                                    <td>{{ position.open_price }}</td>
+                                    <td class="current-price">{{ position.current_price }}</td>
+                                    <td>{{ position.sl|default:"-" }}</td>
+                                    <td>{{ position.tp|default:"-" }}</td>
+                                    <td class="{% if position.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        ${{ position.profit|floatformat:2 }}
+                                    </td>
+                                    <td>
+                                        <button class="btn btn-sm btn-danger" onclick="closePosition('{{ position.ticket }}')">
+                                            Close
+                                        </button>
+                                        <button class="btn btn-sm btn-warning" onclick="showModifyModal('{{ position.ticket }}')">
+                                            Modify
+                                        </button>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- New Order Modal -->
+{% include 'trading/modals/new_order_modal.html' %}
+
+<!-- Modify Order Modal -->
+{% include 'trading/modals/modify_order_modal.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/trading/dashboard.js' %}"></script>
+{% endblock %}

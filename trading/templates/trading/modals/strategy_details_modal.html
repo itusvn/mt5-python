@@ -1,0 +1,102 @@
+<!-- templates/trading/modals/strategy_details_modal.html -->
+<div class="modal fade" id="strategyDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Strategy Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Strategy Info -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Configuration</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Name:</th>
+                                    <td id="strategyName"></td>
+                                </tr>
+                                <tr>
+                                    <th>Symbol:</th>
+                                    <td id="strategySymbol"></td>
+                                </tr>
+                                <tr>
+                                    <th>Timeframe:</th>
+                                    <td id="strategyTimeframe"></td>
+                                </tr>
+                                <tr>
+                                    <th>Risk Per Trade:</th>
+                                    <td id="strategyRisk"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Performance</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <tr>
+                                    <th>Total Trades:</th>
+                                    <td id="strategyTotalTrades"></td>
+                                </tr>
+                                <tr>
+                                    <th>Win Rate:</th>
+                                    <td id="strategyWinRate"></td>
+                                </tr>
+                                <tr>
+                                    <th>Profit Factor:</th>
+                                    <td id="strategyProfitFactor"></td>
+                                </tr>
+                                <tr>
+                                    <th>Sharpe Ratio:</th>
+                                    <td id="strategySharpeRatio"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Performance Charts -->
+                <div class="row mt-4">
+                    <div class="col-md-6">
+                        <canvas id="strategyEquityChart"></canvas>
+                    </div>
+                    <div class="col-md-6">
+                        <canvas id="strategyDrawdownChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Model Weights -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Model Weights</h6>
+                        <div id="modelWeightsContainer"></div>
+                    </div>
+                </div>
+
+                <!-- Recent Trades -->
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <h6>Recent Trades</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Type</th>
+                                        <th>Entry</th>
+                                        <th>Exit</th>
+                                        <th>Profit</th>
+                                        <th>Models Used</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="strategyTradesTable"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

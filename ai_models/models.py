@@ -1,5 +1,6 @@
 # models/models.py
 
+from datetime import timezone
 from django.db import models
 import jsonfield
 

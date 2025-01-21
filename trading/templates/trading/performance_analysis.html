@@ -1,0 +1,165 @@
+<!-- templates/trading/performance_analysis.html -->
+{% extends 'trading/base.html' %}
+
+{% block trading_content %}
+<div class="performance-analysis">
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form id="analysisFilterForm" class="row g-3">
+                        <div class="col-md-3">
+                            <label>Date Range</label>
+                            <select class="form-select" id="dateRange">
+                                <option value="7">Last 7 days</option>
+                                <option value="30" selected>Last 30 days</option>
+                                <option value="90">Last 90 days</option>
+                                <option value="custom">Custom Range</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Strategy</label>
+                            <select class="form-select" id="strategyFilter">
+                                <option value="">All Strategies</option>
+                                {% for strategy in strategies %}
+                                <option value="{{ strategy.id }}">{{ strategy.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>Symbol</label>
+                            <select class="form-select" id="symbolFilter">
+                                <option value="">All Symbols</option>
+                                {% for symbol in symbols %}
+                                <option value="{{ symbol.name }}">{{ symbol.name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label>&nbsp;</label>
+                            <button type="submit" class="btn btn-primary w-100">
+                                Apply Filters
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Total Profit</h5>
+                    <h3 id="totalProfit">${{ metrics.total_profit|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Win Rate</h5>
+                    <h3 id="winRate">{{ metrics.win_rate|floatformat:1 }}%</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Profit Factor</h5>
+                    <h3 id="profitFactor">{{ metrics.profit_factor|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Sharpe Ratio</h5>
+                    <h3 id="sharpeRatio">{{ metrics.sharpe_ratio|floatformat:2 }}</h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Equity Curve</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="equityChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Drawdown Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <canvas id="drawdownChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Trade Analysis -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Trade Analysis</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Symbol</th>
+                                    <th>Type</th>
+                                    <th>Entry</th>
+                                    <th>Exit</th>
+                                    <th>Profit</th>
+                                    <th>Strategy</th>
+                                    <th>Models Used</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tradeAnalysisTable">
+                                {% for trade in trades %}
+                                <tr>
+                                    <td>{{ trade.open_time|date:"Y-m-d H:i" }}</td>
+                                    <td>{{ trade.symbol }}</td>
+                                    <td>
+                                        <span class="badge {% if trade.position_type == 'BUY' %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ trade.position_type }}
+                                        </span>
+                                    </td>
+                                    <td>{{ trade.open_price }}</td>
+                                    <td>{{ trade.close_price|default:"-" }}</td>
+                                    <td class="{% if trade.profit >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                        ${{ trade.profit|floatformat:2 }}
+                                    </td>
+                                    <td>{{ trade.strategy.name }}</td>
+                                    <td>{{ trade.models_used.count }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/trading/performance.js' %}"></script>
+{% endblock %}

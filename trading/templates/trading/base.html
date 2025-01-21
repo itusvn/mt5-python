@@ -1,0 +1,45 @@
+<!-- templates/trading/base.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="trading-container">
+    <div class="row">
+        <!-- Left Sidebar - Navigation -->
+        <div class="col-md-2 sidebar">
+            <div class="sidebar-sticky">
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'trading_dashboard' %}active{% endif %}" 
+                           href="{% url 'trading_dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'order_list' %}active{% endif %}"
+                           href="{% url 'order_list' %}">
+                            <i class="fas fa-list"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'strategy_list' %}active{% endif %}"
+                           href="{% url 'strategy_list' %}">
+                            <i class="fas fa-lightbulb"></i> Strategies
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'ai_models' %}active{% endif %}"
+                           href="{% url 'ai_models' %}">
+                            <i class="fas fa-brain"></i> AI Models
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-10">
+            {% block trading_content %}{% endblock %}
+        </div>
+    </div>
+</div>
+{% endblock %}
